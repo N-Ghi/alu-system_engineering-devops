@@ -1,54 +1,33 @@
-ubuntu@5945-web-01:~$ sudo vi /etc/ufw/before.rules
-ubuntu@5945-web-01:~$ sudo ufw enable 8080
-ERROR: Invalid syntax
+#
+# rules.before
+#
+# Rules that should be run before the ufw command line added rules. Custom
+# rules should be added to one of these chains:
+#   ufw-before-input
+#   ufw-before-output
+#   ufw-before-forward
+#
 
-Usage: ufw COMMAND
+*nat
+:PREROUTING ACCEPT [0:0]
+-A PREROUTING -p tcp --dport 8080 -j REDIRECT --to-port 80
+COMMIT
 
-Commands:
- enable                          enables the firewall
- disable                         disables the firewall
- default ARG                     set default policy
- logging LEVEL                   set logging to LEVEL
- allow ARGS                      add allow rule
- deny ARGS                       add deny rule
- reject ARGS                     add reject rule
- limit ARGS                      add limit rule
- delete RULE|NUM                 delete RULE
- insert NUM RULE                 insert RULE at NUM
- route RULE                      add route RULE
- route delete RULE|NUM           delete route RULE
- route insert NUM RULE           insert route RULE at NUM
- reload                          reload firewall
- reset                           reset firewall
- status                          show firewall status
- status numbered                 show firewall status as numbered list of RULES
- status verbose                  show verbose firewall status
- show ARG                        show firewall report
- version                         display version information
-
-Application profile commands:
- app list                        list application profiles
- app info PROFILE                show information on PROFILE
- app update PROFILE              update PROFILE
- app default ARG                 set default application policy
-
-ubuntu@5945-web-01:~$ sudo ufw allow 8080
-Rule added
-Rule added (v6)
-ubuntu@5945-web-01:~$ sudo service ufw restart
-ubuntu@5945-web-01:~$ sudo ufw enable
-Command may disrupt existing ssh connections. Proceed with operation (y|n)? y
-Firewall is active and enabled on system startup
-ubuntu@5945-web-01:~$ sudo vi /etc/ufw/before.rules
+# Don't delete these required lines, otherwise there will be errors
+*filter
+:ufw-before-input - [0:0]
+:ufw-before-output - [0:0]
+:ufw-before-forward - [0:0]
+:ufw-not-local - [0:0]
+# End required lines
 
 
+# allow all on loopback
+-A ufw-before-input -i lo -j ACCEPT
+-A ufw-before-output -o lo -j ACCEPT
 
-
-
-
-
-
-
+# quickly process packets for which we already have a connection
+-A ufw-before-input -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 -A ufw-before-output -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 -A ufw-before-forward -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 
